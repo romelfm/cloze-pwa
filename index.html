@@ -25,6 +25,7 @@
     </header>
 
     <main class="container">
+      <!-- BLOCK 0 (original) -->
       <section class="card">
         <h2>Create cloze</h2>
         <p class="hint">Type text and wrap answers like: <code>{{answer}}</code></p>
@@ -40,6 +41,85 @@
       <section class="card">
         <h2>Review</h2>
         <div id="review"></div>
+      </section>
+
+      <!-- BLOCK 1: Wrap selection + caret memory -->
+      <section class="card">
+        <h2>Option 1: Wrap selection</h2>
+        <p class="hint">Select text (or just place the caret). Tap “Cloze” to wrap as <code>{{...}}</code>.</p>
+
+        <textarea id="t1" rows="4" placeholder="The capital of Canada is Ottawa."></textarea>
+
+        <div class="row">
+          <button id="t1Cloze" type="button">Cloze</button>
+          <button id="t1Add" type="button">Add card</button>
+          <span id="s1" class="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Review (Option 1)</h2>
+        <div id="r1"></div>
+      </section>
+
+      <!-- BLOCK 2: Inline blank + answer field -->
+      <section class="card">
+        <h2>Option 2: Blank + Answer</h2>
+        <p class="hint">Tap in the sentence, hit “Blank” to insert <code>____</code>, then type the answer below.</p>
+
+        <textarea id="t2" rows="4" placeholder="The capital of Canada is ."></textarea>
+        <input id="t2Answer" class="textin" type="text" placeholder="Answer for the last blank (e.g., Ottawa)" />
+
+        <div class="row">
+          <button id="t2Blank" type="button">Blank</button>
+          <button id="t2Add" type="button">Add card</button>
+          <span id="s2" class="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Review (Option 2)</h2>
+        <div id="r2"></div>
+      </section>
+
+      <!-- BLOCK 3: Tap-to-hide editor (contenteditable) -->
+      <section class="card">
+        <h2>Option 3: Tap to hide words</h2>
+        <p class="hint">Type text, then tap a word to toggle blank. Hidden words are remembered in the element’s <code>data-*</code> attributes via <code>dataset</code>.</p>
+
+        <div id="t3" class="editor" contenteditable="true" spellcheck="false"
+          aria-label="Tap to hide editor">The capital of Canada is Ottawa.</div>
+
+        <div class="row">
+          <button id="t3Add" type="button">Add card</button>
+          <button id="t3Clear" type="button">Clear blanks</button>
+          <span id="s3" class="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Review (Option 3)</h2>
+        <div id="r3"></div>
+      </section>
+
+      <!-- BLOCK 4: “Blank at end” (one-tap, no caret precision) -->
+      <section class="card">
+        <h2>Option 4: Blank at end</h2>
+        <p class="hint">One tap appends a blank at the end (fast on phones). Then type the answer.</p>
+
+        <textarea id="t4" rows="4" placeholder="Type sentence, then tap Blank-at-end."></textarea>
+        <input id="t4Answer" class="textin" type="text" placeholder="Answer for that blank" />
+
+        <div class="row">
+          <button id="t4Blank" type="button">Blank at end</button>
+          <button id="t4Add" type="button">Add card</button>
+          <span id="s4" class="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Review (Option 4)</h2>
+        <div id="r4"></div>
       </section>
     </main>
 
