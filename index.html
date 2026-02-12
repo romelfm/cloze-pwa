@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Cloze PWA</title>
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Cloze PWA</h1>
+      <div class="topbar-actions">
+        <button id="btnNew" type="button">New</button>
+        <button id="btnExport" type="button">Export</button>
+        <label class="btnlike">
+          Import <input id="fileImport" type="file" accept="application/json" hidden />
+        </label>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>Create cloze</h2>
+        <p class="hint">Type text and wrap answers like: <code>{{answer}}</code></p>
+
+        <textarea id="inputText" rows="5" placeholder="Example: The capital of Canada is {{Ottawa}}."></textarea>
+
+        <div class="row">
+          <button id="btnAdd" type="button">Add card</button>
+          <span id="status" class="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Review</h2>
+        <div id="review"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
