@@ -10,10 +10,10 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
+  // IMPORTANT: don't auto-skipWaiting here, or your "Refresh" button often has
+  // no waiting worker to activate.
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(CORE_ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
 });
 
@@ -21,8 +21,10 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-      await Promise.all(keys.map((k) => (k === CACHE_NAME ? Promise.resolve() : caches.delete(k))));
-      await self.clients.claim();
+      await Promise.all(
+        keys.map((k) => (k === CACHE_NAME ? Promise.resolve() : caches.delete(k)))
+      );
+      await self.clients.claim(); // takes control of pages ASAP [page:0]
     })()
   );
 });
@@ -49,9 +51,10 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// NEW: allow the page to trigger activation when user clicks "Update/Refresh"
+// This is what your in-app "Refresh" button triggers:
+// reg.waiting.postMessage({type:"SKIP_WAITING"})
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
+    self.skipWaiting(); // activates the waiting SW now [page:1]
   }
 });
