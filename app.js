@@ -210,7 +210,7 @@ document.getElementById("t1Cloze")?.addEventListener("click", () => {
 
   if (start !== end) {
     const selected = t1.value.slice(start, end);
-    t1.setRangeText(`{{${selected}}}`, start, end, "end"); // replaces range [web:550]
+    t1.setRangeText(`{{${selected}}}`, start, end, "end");
   } else {
     const ins = "{{answer}}";
     t1.setRangeText(ins, start, end, "end");
@@ -249,7 +249,7 @@ if (t2) ["click", "keyup", "select", "input"].forEach(ev => t2.addEventListener(
 document.getElementById("t2Blank")?.addEventListener("click", () => {
   if (!t2) return;
   t2.focus();
-  t2.setRangeText("____", t2Start, t2End, "end"); // inserts/replaces at caret [web:550]
+  t2.setRangeText("____", t2Start, t2End, "end");
   remember2();
   setStatus("s2", "Inserted blank. Type the answer below.");
 });
@@ -276,7 +276,7 @@ const t3 = document.getElementById("t3");
 function clearBlanks3() {
   if (!t3) return;
   t3.querySelectorAll("span.blank").forEach((sp) => {
-    const ans = sp.dataset.answer || ""; // custom data via dataset [web:615]
+    const ans = sp.dataset.answer || "";
     sp.replaceWith(document.createTextNode(ans));
   });
 }
@@ -336,7 +336,7 @@ function toggleWordAtTap(e) {
 
   const sp = document.createElement("span");
   sp.className = "blank";
-  sp.dataset.answer = word; // dataset stores answer [web:615]
+  sp.dataset.answer = word;
   sp.textContent = "____";
 
   const parent = textNode.parentNode;
@@ -403,22 +403,23 @@ function showUpdateBanner(reg) {
 
   banner.hidden = false;
 
-  btn.onclick = () => {
-    if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+  btn.onclick = async () => {
+    // Always get latest registration at click-time, then message the waiting worker
+    const latest = await navigator.serviceWorker.getRegistration();
+    if (latest?.waiting) latest.waiting.postMessage({ type: "SKIP_WAITING" });
   };
 
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    window.location.reload();
-  }, { once: true });
+  navigator.serviceWorker.addEventListener(
+    "controllerchange",
+    () => window.location.reload(),
+    { once: true }
+  );
 }
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
       const reg = await navigator.serviceWorker.register("./sw.js");
-
-      // Ask browser to check for an updated SW script [web:669]
-      try { await reg.update(); } catch { /* ignore */ }
 
       // If an update is already waiting, show banner immediately
       if (reg.waiting) showUpdateBanner(reg);
