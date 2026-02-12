@@ -64,6 +64,7 @@ function downloadJSON(filename, obj) {
 
 function setStatus(id, msg, ok = true) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.textContent = msg;
   el.style.color = ok ? "var(--muted)" : "var(--danger)";
   if (msg) setTimeout(() => { el.textContent = ""; el.style.color = "var(--muted)"; }, 2500);
@@ -71,6 +72,8 @@ function setStatus(id, msg, ok = true) {
 
 function renderInto(key, wrapId) {
   const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+
   const cards = loadCards(key);
 
   if (cards.length === 0) {
@@ -129,7 +132,7 @@ function renderInto(key, wrapId) {
 -------------------------- */
 function renderOriginal() { renderInto(STORAGE_KEY, "review"); }
 
-document.getElementById("btnAdd").addEventListener("click", () => {
+document.getElementById("btnAdd")?.addEventListener("click", () => {
   const ta = document.getElementById("inputText");
   const card = makeCardFromClozeText(ta.value);
   if (card.error) return setStatus("status", card.error, false);
@@ -142,18 +145,19 @@ document.getElementById("btnAdd").addEventListener("click", () => {
   renderOriginal();
 });
 
-document.getElementById("btnNew").addEventListener("click", () => {
-  document.getElementById("inputText").value = "";
+document.getElementById("btnNew")?.addEventListener("click", () => {
+  const ta = document.getElementById("inputText");
+  if (ta) ta.value = "";
   setStatus("status", "Cleared.");
 });
 
-document.getElementById("btnExport").addEventListener("click", () => {
+document.getElementById("btnExport")?.addEventListener("click", () => {
   const cards = loadCards(STORAGE_KEY);
   downloadJSON("cloze-cards.json", { version: 1, exportedAt: nowISO(), cards });
   setStatus("status", "Exported.");
 });
 
-document.getElementById("fileImport").addEventListener("change", async (e) => {
+document.getElementById("fileImport")?.addEventListener("change", async (e) => {
   const f = e.target.files?.[0];
   if (!f) return;
 
@@ -185,37 +189,38 @@ document.getElementById("fileImport").addEventListener("change", async (e) => {
 
 /* -------------------------
    OPTION 1: Wrap selection
-   - remembers caret/selection
+   - remembers caret/selection (mobile-friendly)
 -------------------------- */
 const t1 = document.getElementById("t1");
 let t1Start = 0, t1End = 0;
 
 function remember1() {
+  if (!t1) return;
   t1Start = t1.selectionStart ?? 0;
   t1End = t1.selectionEnd ?? t1Start;
 }
 
-["click", "keyup", "select", "input"].forEach(ev => t1.addEventListener(ev, remember1));
+if (t1) ["click", "keyup", "select", "input"].forEach(ev => t1.addEventListener(ev, remember1));
 
-document.getElementById("t1Cloze").addEventListener("click", () => {
-  // caret can disappear when button tapped; we keep the last indices
+document.getElementById("t1Cloze")?.addEventListener("click", () => {
+  if (!t1) return;
   t1.focus();
+
   const start = t1Start, end = t1End;
 
   if (start !== end) {
     const selected = t1.value.slice(start, end);
-    t1.setRangeText(`{{${selected}}}`, start, end, "end");
+    t1.setRangeText(`{{${selected}}}`, start, end, "end"); // replaces range [web:550]
   } else {
-    // no selection: insert a placeholder cloze
     const ins = "{{answer}}";
     t1.setRangeText(ins, start, end, "end");
-    // select "answer"
     t1.setSelectionRange(start + 2, start + 2 + "answer".length);
   }
   remember1();
 });
 
-document.getElementById("t1Add").addEventListener("click", () => {
+document.getElementById("t1Add")?.addEventListener("click", () => {
+  if (!t1) return;
   const card = makeCardFromClozeText(t1.value);
   if (card.error) return setStatus("s1", card.error, false);
 
@@ -235,22 +240,23 @@ const t2Answer = document.getElementById("t2Answer");
 let t2Start = 0, t2End = 0;
 
 function remember2() {
+  if (!t2) return;
   t2Start = t2.selectionStart ?? 0;
   t2End = t2.selectionEnd ?? t2Start;
 }
-["click", "keyup", "select", "input"].forEach(ev => t2.addEventListener(ev, remember2));
+if (t2) ["click", "keyup", "select", "input"].forEach(ev => t2.addEventListener(ev, remember2));
 
-document.getElementById("t2Blank").addEventListener("click", () => {
+document.getElementById("t2Blank")?.addEventListener("click", () => {
+  if (!t2) return;
   t2.focus();
-  t2.setRangeText("____", t2Start, t2End, "end");
+  t2.setRangeText("____", t2Start, t2End, "end"); // inserts/replaces at caret [web:550]
   remember2();
   setStatus("s2", "Inserted blank. Type the answer below.");
 });
 
-document.getElementById("t2Add").addEventListener("click", () => {
-  const q = t2.value;
-  const a = t2Answer.value;
-  const card = makeCardFromQA(q, [a]);
+document.getElementById("t2Add")?.addEventListener("click", () => {
+  if (!t2 || !t2Answer) return;
+  const card = makeCardFromQA(t2.value, [t2Answer.value]);
   if (card.error) return setStatus("s2", card.error, false);
 
   const cards = loadCards(K2);
@@ -268,17 +274,19 @@ document.getElementById("t2Add").addEventListener("click", () => {
 const t3 = document.getElementById("t3");
 
 function clearBlanks3() {
-  // Replace blanks with their stored answer text
+  if (!t3) return;
   t3.querySelectorAll("span.blank").forEach((sp) => {
-    const ans = sp.dataset.answer || "";
+    const ans = sp.dataset.answer || ""; // custom data via dataset [web:615]
     sp.replaceWith(document.createTextNode(ans));
   });
 }
 
 function editorToCard3() {
-  // Build question text (with ____ for blanks) + answers list
+  if (!t3) return { error: "Editor missing." };
+
   const answers = [];
   const parts = [];
+
   t3.childNodes.forEach((node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       parts.push(node.textContent);
@@ -295,21 +303,19 @@ function editorToCard3() {
 }
 
 function toggleWordAtTap(e) {
+  if (!t3) return;
+
   const sel = window.getSelection && window.getSelection();
-  // If user is selecting text, don't interfere
   if (sel && !sel.isCollapsed) return;
 
   const target = e.target;
 
-  // Tapping an existing blank toggles it back to the word
   if (target && target.matches && target.matches("span.blank")) {
     const ans = target.dataset.answer || "";
     target.replaceWith(document.createTextNode(ans));
     return;
   }
 
-  // Otherwise, try to blank the word at caret: we approximate using the clicked text node + offset
-  // Simplified: only works reliably when tapping within a TEXT_NODE
   const range = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
   if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return;
 
@@ -317,7 +323,6 @@ function toggleWordAtTap(e) {
   const text = textNode.textContent || "";
   const idx = range.startOffset;
 
-  // Find word boundaries around idx
   const isWordChar = (ch) => /[A-Za-z0-9À-ÿ'_’-]/.test(ch);
   let L = idx, R = idx;
   while (L > 0 && isWordChar(text[L - 1])) L--;
@@ -326,12 +331,12 @@ function toggleWordAtTap(e) {
   const word = text.slice(L, R).trim();
   if (!word) return;
 
-  // Replace word with <span class="blank" data-answer="...">____</span>
   const before = document.createTextNode(text.slice(0, L));
   const after = document.createTextNode(text.slice(R));
+
   const sp = document.createElement("span");
   sp.className = "blank";
-  sp.dataset.answer = word; // dataset stores the real word [web:624]
+  sp.dataset.answer = word; // dataset stores answer [web:615]
   sp.textContent = "____";
 
   const parent = textNode.parentNode;
@@ -341,21 +346,21 @@ function toggleWordAtTap(e) {
   parent.removeChild(textNode);
 }
 
-t3.addEventListener("pointerup", toggleWordAtTap);
+if (t3) t3.addEventListener("pointerup", toggleWordAtTap);
 
-document.getElementById("t3Clear").addEventListener("click", () => {
+document.getElementById("t3Clear")?.addEventListener("click", () => {
   clearBlanks3();
   setStatus("s3", "Cleared blanks.");
 });
 
-document.getElementById("t3Add").addEventListener("click", () => {
+document.getElementById("t3Add")?.addEventListener("click", () => {
   const card = editorToCard3();
   if (card.error) return setStatus("s3", card.error, false);
 
   const cards = loadCards(K3);
   cards.push(card);
   saveCards(cards, K3);
-  t3.textContent = "";
+  if (t3) t3.textContent = "";
   setStatus("s3", "Added.");
   renderInto(K3, "r3");
 });
@@ -366,14 +371,16 @@ document.getElementById("t3Add").addEventListener("click", () => {
 const t4 = document.getElementById("t4");
 const t4Answer = document.getElementById("t4Answer");
 
-document.getElementById("t4Blank").addEventListener("click", () => {
+document.getElementById("t4Blank")?.addEventListener("click", () => {
+  if (!t4) return;
   const v = t4.value || "";
   t4.value = v + (v && !v.endsWith(" ") ? " " : "") + "____";
   t4.focus();
   setStatus("s4", "Appended blank. Type the answer below.");
 });
 
-document.getElementById("t4Add").addEventListener("click", () => {
+document.getElementById("t4Add")?.addEventListener("click", () => {
+  if (!t4 || !t4Answer) return;
   const card = makeCardFromQA(t4.value, [t4Answer.value]);
   if (card.error) return setStatus("s4", card.error, false);
 
@@ -387,16 +394,53 @@ document.getElementById("t4Add").addEventListener("click", () => {
 });
 
 /* -------------------------
-   Service worker registration
+   Service worker update UX
 -------------------------- */
+function showUpdateBanner(reg) {
+  const banner = document.getElementById("updateBanner");
+  const btn = document.getElementById("btnUpdateNow");
+  if (!banner || !btn) return;
+
+  banner.hidden = false;
+
+  btn.onclick = () => {
+    if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+  };
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  }, { once: true });
+}
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
-    try { await navigator.serviceWorker.register("./sw.js"); }
-    catch { /* ignore */ }
+    try {
+      const reg = await navigator.serviceWorker.register("./sw.js");
+
+      // Ask browser to check for an updated SW script [web:669]
+      try { await reg.update(); } catch { /* ignore */ }
+
+      // If an update is already waiting, show banner immediately
+      if (reg.waiting) showUpdateBanner(reg);
+
+      // Detect when a new SW is being installed [web:668]
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            showUpdateBanner(reg);
+          }
+        });
+      });
+    } catch {
+      // ignore
+    }
   });
 }
 
-// Initial renders
+/* Initial renders */
 renderOriginal();
 renderInto(K1, "r1");
 renderInto(K2, "r2");
