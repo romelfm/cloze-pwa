@@ -58,6 +58,7 @@ button:active{ transform: translateY(1px); }
 
 h2{ margin:0 0 8px; font-size:15px; }
 .hint{ margin:0 0 10px; color:var(--muted); font-size:13px; }
+
 textarea{
   width:100%;
   border-radius:12px;
@@ -143,4 +144,19 @@ textarea{
   border:1px dashed rgba(96,165,250,.55);
   color:rgba(229,231,235,.85);
   background: rgba(96,165,250,.08);
+}
+
+/* Update available banner */
+.updateBanner{
+  position: sticky;
+  bottom: 10px;
+  margin: 0 14px 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(96,165,250,.45);
+  background: rgba(15,26,51,.92);
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
 }
