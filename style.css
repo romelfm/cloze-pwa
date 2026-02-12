@@ -17,6 +17,11 @@ body{
   color:var(--text);
 }
 
+/* Always respect the HTML hidden attribute */
+[hidden] {
+  display: none !important;
+}
+
 .topbar{
   position:sticky; top:0;
   background:rgba(11,18,32,.85);
